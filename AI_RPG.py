@@ -39,7 +39,7 @@ def get_newsongs(token):
     url = "https://api.spotify.com/v1/search"
     headers = { "Authorization": f"Bearer {token}"}
     # genre:rock
-    params = {"q":"one ok rock","market":"TW","type":"track","limit": 10}
+    params = {"q":"ricefield","market":"TW","type":"track","limit": 10}
     response = rq.get(url, headers=headers, params=params)
     search_results = response.json()
     print(search_results)
@@ -213,7 +213,7 @@ def ready_for_music(state):
 
 def create_a_story(state):
     print("---CREATE A STORY---")
-    lyrics = get_lyrics_azlyrics(artist = "ONE OK ROCK", song = "The Pilot </3")
+    lyrics = get_lyrics_azlyrics(artist = "jaychou", song = "ricefield")
     story_instructions = """
     你是一個很會用歌詞說故事的專家。
     請根據歌詞用繁體中文說一則與歌詞相關的故事
