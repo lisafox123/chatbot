@@ -13,13 +13,14 @@ from langchain_core.messages import SystemMessage, ToolMessage, AIMessage, Human
 from typing_extensions import TypedDict
 import json
 import random
+import streamlit as st
 # 設定API Key
 def MISTRAL_API_KEY(api_key=None):
     if api_key:
         os.environ["MISTRAL_API_KEY"] = api_key
     else:
         os.environ["MISTRAL_API_KEY"] = getpass("Tavily API key:\n")
-MISTRAL_API_KEY("VBAtk7VDe3Ox1flJJsKlPho0j4R1yy4n")
+MISTRAL_API_KEY = st.secrets["MISTRAL_API_KEY"]
 # 初始化模型
 llm = ChatMistralAI(
     model="mistral-large-latest",

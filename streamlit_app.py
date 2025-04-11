@@ -5,8 +5,8 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from AI_RPG import get_lyrics_azlyrics,show_all
 
 # 設定 Spotify API 金鑰
-SPOTIFY_CLIENT_ID = "fe6ef6c3ecf84073a8afdd24fefafb34"
-SPOTIFY_CLIENT_SECRET = "9205fe50d23146ac888b6ab5e7167dd4"
+SPOTIFY_CLIENT_ID = st.secrets["SPOTIFY_CLIENT_ID"]
+SPOTIFY_CLIENT_SECRET = st.secrets["SPOTIFY_CLIENT_SECRET"]
 
 # 初始化 Spotipy
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
