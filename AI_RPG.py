@@ -15,12 +15,15 @@ import json
 import random
 import streamlit as st
 # 設定API Key
-def MISTRAL_API_KEY(api_key=None):
+def mistral_key(api_key=None):
     if api_key:
         os.environ["MISTRAL_API_KEY"] = api_key
     else:
         os.environ["MISTRAL_API_KEY"] = getpass("Tavily API key:\n")
-MISTRAL_API_KEY = st.secrets["MISTRAL_API_KEY"]
+
+# 從 secrets.toml 讀取
+api_key = st.secrets["MISTRAL_API_KEY"]
+mistral_key(api_key)
 # 初始化模型
 llm = ChatMistralAI(
     model="mistral-large-latest",
