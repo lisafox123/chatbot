@@ -14,6 +14,8 @@ from typing_extensions import TypedDict
 import json
 import random
 import streamlit as st
+import time
+
 # 設定API Key
 def mistral_key(api_key=None):
     if api_key:
@@ -89,27 +91,36 @@ def play(token,uri):
 def clean_text(text):
     return re.sub(r"[^\w\u4e00-\u9fff]", "", text)
 def get_lyrics_azlyrics(artist, song):
+    def clean_text(text):
+        return ''.join(e for e in text if e.isalnum())
+
     artist = clean_text(artist.replace(" ", "").lower())
     song = clean_text(song.replace(" ", "").lower())
-    
-    url = f"https://www.azlyrics.com/lyrics/{artist}/{song}.html"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    
-    response = rq.get(url, headers=headers)
-    if response.status_code != 200:
-        return "歌詞未找到"
 
-    soup = BeautifulSoup(response.text, "html.parser")
-    br_tags = soup.find_all("br")
-    # 提取 <br> 標籤前的文字
-    br_texts = [
-    br.previous_sibling.strip()
-    for br in br_tags
-    if br.previous_sibling and isinstance(br.previous_sibling, str)
-    ]
-    # 顯示結果
-    br_texts = " ".join(br_texts)
-    return br_texts
+    url = f"https://www.azlyrics.com/lyrics/{artist}/{song}.html"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9"
+    }
+
+    # 隨機延遲 1.5～3.5 秒
+    time.sleep(random.uniform(1.5, 3.5))
+
+    try:
+        response = rq.get(url, headers=headers, timeout=10)
+        if response.status_code != 200:
+            return f"無法取得歌詞（狀態碼 {response.status_code}）"
+        
+        soup = BeautifulSoup(response.text, "html.parser")
+        # AZLyrics 歌詞區塊位於所有 <div> 中，第 5 個之後通常是歌詞內容
+        divs = soup.find_all("div", attrs={"class": None, "id": None})
+        for div in divs:
+            if div.text.strip():
+                return div.text.strip()
+        return "歌詞未找到"
+    
+    except Exception as e:
+        return f"發生錯誤：{e}"
 
 # 測試
 
@@ -166,7 +177,8 @@ def route_question(state):
     json：{{"datasource": "<vectorstore | new | like>"}}
 
     **請確保輸出只有 JSON，避免任何額外解釋或非 JSON 內容。**
-    """
+    """ 
+
     router_prompt = """
     使用者的問題：{question}
     根據使用者的訊息，選擇要檢索聊天紀錄了解問題，還是直接從問題了解使用者情緒。
