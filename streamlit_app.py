@@ -1,56 +1,55 @@
 import streamlit as st
-from openai import OpenAI
+import requests
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
+from AI_RPG import get_lyrics_azlyrics,show_all
 
-# Show title and description.
-st.title("💬 Chatbot")
-st.write(
-    "This is a simple chatbot that uses OpenAI's GPT-3.5 model to generate responses. "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
-    "You can also learn how to build this app step by step by [following our tutorial](https://docs.streamlit.io/develop/tutorials/llms/build-conversational-apps)."
-)
+# 設定 Spotify API 金鑰
+SPOTIFY_CLIENT_ID = "fe6ef6c3ecf84073a8afdd24fefafb34"
+SPOTIFY_CLIENT_SECRET = "9205fe50d23146ac888b6ab5e7167dd4"
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-openai_api_key = st.text_input("OpenAI API Key", type="password")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
-else:
+# 初始化 Spotipy
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
+    client_id=SPOTIFY_CLIENT_ID, client_secret=SPOTIFY_CLIENT_SECRET
+))
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+# Streamlit UI
+st.set_page_config(page_title="Moodify", page_icon="☁️")
+st.title("☁️ Moodify ")
+st.subheader("讓旋律輕輕擁抱你的心🎧")
 
-    # Create a session state variable to store the chat messages. This ensures that the
-    # messages persist across reruns.
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+# 使用者輸入
+user_input = st.text_input("🌿Hope you're having a gentle and pleasant day! How are you feeling?")
 
-    # Display the existing chat messages via `st.chat_message`.
-    for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+if st.button("🎶 Song for you"):
+    if user_input:
+        # 搜尋歌曲或歌手
+        story = show_all(user_input)
+        user_input = "The Pilot </3"
+        search_results = sp.search(q=user_input, type="track", limit=1)
 
-    # Create a chat input field to allow the user to enter a message. This will display
-    # automatically at the bottom of the page.
-    if prompt := st.chat_input("What is up?"):
+        # 檢查是否有結果
+        if search_results and search_results["tracks"]["items"]:
+            st.subheader("🎼 推薦歌曲")
+            # 設定兩首歌並排顯示
+            cols = st.columns(2)  # 建立兩個列
+            
+            for i, track in enumerate(search_results["tracks"]["items"]):
+                track_name = track["name"]
+                artist_name = track["artists"][0]["name"]
+                spotify_url = track["external_urls"]["spotify"]
+            # 兩列佈局
+            left_col, right_col = st.columns([1, 2])  # `iframe`: 1, `story.content`: 2
 
-        # Store and display the current prompt.
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+            with left_col:
+                st.markdown(f'''
+                    <iframe src="https://open.spotify.com/embed/track/{track["id"]}?utm_source=generator" 
+                    width="100%" height="380" frameBorder="0" allow="encrypted-media"></iframe>
+                ''', unsafe_allow_html=True)
 
-        # Generate a response using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": m["role"], "content": m["content"]}
-                for m in st.session_state.messages
-            ],
-            stream=True,
-        )
-
-        # Stream the response to the chat using `st.write_stream`, then store it in 
-        # session state.
-        with st.chat_message("assistant"):
-            response = st.write_stream(stream)
-        st.session_state.messages.append({"role": "assistant", "content": response})
+            with right_col:
+                st.write(story.content)
+        else:
+            st.warning("😢 找不到符合條件的歌曲，請試試不同的關鍵字。")
+    else:
+        st.error("請輸入音樂相關的問題！")
