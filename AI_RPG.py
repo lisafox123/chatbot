@@ -28,7 +28,7 @@ api_key = st.secrets["MISTRAL_API_KEY"]
 mistral_key(api_key)
 # 初始化模型
 llm = ChatMistralAI(
-    model="mistral-large-latest",
+    model="mistral-medium-latest",
     temperature=0,
     max_retries=2,
 )
