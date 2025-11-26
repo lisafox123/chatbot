@@ -28,7 +28,7 @@ api_key = st.secrets["MISTRAL_API_KEY"]
 mistral_key(api_key)
 # 初始化模型
 llm = ChatMistralAI(
-    model="mistral-medium-latest",
+    model="mistral-small-2506",
     temperature=0,
     max_retries=2,
 )
@@ -205,7 +205,16 @@ def route_question(state):
                 )
             ]
         )
-    source = json.loads(source.content)["datasource"]
+    raw = source.content.strip()
+
+    # 清掉 ```json 或 ``` 包裝
+    if raw.startswith("```"):
+        raw = raw.strip("`")
+        # 也可能用 split 比較保險
+        raw = raw.split("\n", 1)[1].rsplit("\n", 1)[0]
+
+    source = json.loads(raw)
+    source = source["datasource"]
     print(source)
 
     if source == "new":
